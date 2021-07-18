@@ -9,10 +9,10 @@ telegraph = Telegraph(params.telegraph_token)
 
 def htmlify_text_message(message):
     try:
-        if message.json['forward_from'] is not None:
+        if message.json['forward_from'] is not None:  # если форвард
             s = "###" + message.json['forward_from']['first_name']
             author = markdown.markdown(s)
-        else:
+        else:  # если не форвард, а обычное сообщение
             s = "###" + message.json['from']['first_name']
             author = markdown.markdown(s)
         text = markdown.markdown(message.json.get('text'))
@@ -25,7 +25,7 @@ def htmlify_text_message(message):
 
 class Sender:
     current_name = None
-    current_state = params.IDLE
+    current_state = params.IDLE  # тут пять состояний, они перечислены в файле params
     current_html = ""
 
 
@@ -107,11 +107,13 @@ def handler(message):
         return
     if sender.current_state == params.EDIT:
         print(sender.current_html)
+        # получаем старую статью
         response = telegraph.get_page(path=message.json.get('text'))
-        current_content = response['content']
-        current_title = response['title']
+        current_content = response['content']  # сохранили содержимое
+        current_title = response['title']  # сохранили название
         response = telegraph.edit_page(path=message.json.get('text'),
                                        title=current_title,
+                                       author_name=sender.current_name,
                                        html_content=current_content + sender.current_html)
         sender.current_html = ""
         sender.current_state = params.IDLE
